@@ -1,7 +1,8 @@
 repositories {
     mavenCentral()
-    google() // Needed for androidx
+    google()
     maven { url = "https://mymaven.bylazar.com/releases" }
+    maven { url 'https://repo.dairy.foundation/releases/' }
 }
 
 dependencies {
@@ -19,4 +20,3 @@ dependencies {
     implementation 'com.pedropathing:telemetry:1.0.0'
     implementation 'com.bylazar:fullpanels:1.0.9'
 }
-
