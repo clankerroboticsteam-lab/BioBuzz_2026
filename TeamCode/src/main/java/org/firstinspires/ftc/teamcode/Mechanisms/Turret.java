@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 import com.sun.tools.javac.jvm.Pool;
 
 import org.firstinspires.ftc.vision.apriltag.AprilTagCanvasAnnotator;
@@ -28,7 +29,7 @@ public class Turret {
 
     private HardwareMap hwMap;
 
-    private void init(HardwareMap hwMap) {
+    public void init(HardwareMap hwMap) {
         turret = hwMap.get(DcMotorEx.class, "turret");
         turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
@@ -52,6 +53,36 @@ public class Turret {
 
     }
 
-    public void update(LLResult curID){}
+    public void update(LLResult curID) {
+        double deltaTime = timer.seconds();
+        timer.reset();
+
+        if (curID == null ) {
+            turret.setPower(0);
+            lastError = 0;
+            return;
+        }
+
+        //------ start PD controller ------
+
+        double error = goalX - curID.ftcPose.bearing;
+        double pTerm = error * kP;
+
+        double dTerm = 0;
+        if (deltaTime > 0) {
+            dTerm = ((error - lastError) / deltaTime) * kD;
+        }
+
+        if (Math.abs(error) < angleTolerance) {
+            power = 0;
+        } else {
+            power = Range.clip(pTerm + dTerm, -Max_POWER, Max_POWER);
+        }
+
+        // safety encoder check OR magnetic limit switch check, OR other safety
+
+        turret.setPower(power);
+        lastError = error;
+    }
 
 }
